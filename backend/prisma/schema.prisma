@@ -25,6 +25,8 @@ model User {
   updated_at DateTime @updatedAt
 
   championships Championship[] 
+  teams                 Team[]  @relation("TeamManager")
+  player        Player?   @relation("PlayerUser")
 }
 
 enum UserRole {
@@ -65,5 +67,62 @@ model Championship {
 
   organizer    User   @relation(fields: [organizer_id], references: [id])
   organizer_id String
+
+  enrollments ChampionshipTeam[]
 }
 
+model Team {
+  id           String   @id @default(cuid())
+  name         String
+  short_name   String
+  badge_url    String?
+  city         String
+  founded_year Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  manager      User     @relation("TeamManager", fields: [manager_id], references: [id])
+  manager_id   String
+
+  players      Player[] 
+  championships ChampionshipTeam[]
+}
+
+model Player {
+  id             String   @id @default(cuid())
+  full_name      String
+  birth_date     DateTime
+  position       String?
+  jersey_number  Int
+  nationality    String?
+  photo_url      String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  team           Team     @relation(fields: [team_id], references: [id])
+  team_id        String
+
+  user           User?    @relation("PlayerUser", fields: [user_id], references: [id])
+  user_id        String?  @unique
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ChampionshipTeam {
+  id              String           @id @default(cuid())
+  enrolled_at     DateTime         @default(now())
+  status          EnrollmentStatus @default(PENDING)
+  group_name      String?
+
+  championship    Championship     @relation(fields: [championship_id], references: [id])
+  championship_id String
+
+  team            Team             @relation(fields: [team_id], references: [id])
+  team_id         String
+
+  @@unique([championship_id, team_id])
+}
