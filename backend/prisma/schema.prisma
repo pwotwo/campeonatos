@@ -27,6 +27,8 @@ model User {
   championships Championship[] 
   teams                 Team[]  @relation("TeamManager")
   player        Player?   @relation("PlayerUser")
+
+  referee_matches Match[] @relation("MatchReferee")
 }
 
 enum UserRole {
@@ -69,6 +71,8 @@ model Championship {
   organizer_id String
 
   enrollments ChampionshipTeam[]
+  matches Match[]
+  standings Standing[]
 }
 
 model Team {
@@ -86,6 +90,12 @@ model Team {
 
   players      Player[] 
   championships ChampionshipTeam[]
+
+  home_matches Match[] @relation("HomeTeam")
+  away_matches Match[] @relation("AwayTeam")
+
+  events MatchEvent[]
+  standings Standing[]
 }
 
 model Player {
@@ -104,6 +114,8 @@ model Player {
 
   user           User?    @relation("PlayerUser", fields: [user_id], references: [id])
   user_id        String?  @unique
+
+  events MatchEvent[]
 }
 
 enum EnrollmentStatus {
@@ -122,6 +134,84 @@ model ChampionshipTeam {
   championship_id String
 
   team            Team             @relation(fields: [team_id], references: [id])
+  team_id         String
+
+  @@unique([championship_id, team_id])
+}
+
+enum MatchStatus {
+  SCHEDULED
+  ONGOING
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  round       Int
+  scheduled_at DateTime
+  venue       String?
+  home_score  Int?
+  away_score  Int?
+  status      MatchStatus @default(SCHEDULED)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  championship    Championship @relation(fields: [championship_id], references: [id])
+  championship_id String
+
+  home_team    Team   @relation("HomeTeam", fields: [home_team_id], references: [id])
+  home_team_id String
+
+  away_team    Team   @relation("AwayTeam", fields: [away_team_id], references: [id])
+  away_team_id String
+
+  referee      User?  @relation("MatchReferee", fields: [referee_id], references: [id])
+  referee_id   String?
+
+  events MatchEvent[]
+}
+
+enum EventType {
+  GOAL
+  YELLOW_CARD
+  RED_CARD
+  SUBSTITUTION
+}
+
+model MatchEvent {
+  id          String    @id @default(cuid())
+  minute      Int
+  description String?
+  type        EventType
+  created_at  DateTime  @default(now())
+
+  match       Match     @relation(fields: [match_id], references: [id])
+  match_id    String
+
+  player      Player    @relation(fields: [player_id], references: [id])
+  player_id   String
+
+  team        Team      @relation(fields: [team_id], references: [id])
+  team_id     String
+}
+
+model Standing {
+  id             String   @id @default(cuid())
+  points         Int      @default(0)
+  played         Int      @default(0)
+  wins           Int      @default(0)
+  draws          Int      @default(0)
+  losses         Int      @default(0)
+  goals_for      Int      @default(0)
+  goals_against  Int      @default(0)
+  updated_at     DateTime @updatedAt
+
+  championship    Championship @relation(fields: [championship_id], references: [id])
+  championship_id String
+
+  team            Team         @relation(fields: [team_id], references: [id])
   team_id         String
 
   @@unique([championship_id, team_id])
