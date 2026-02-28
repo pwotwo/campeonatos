@@ -23,6 +23,8 @@ model User {
   avatar_url String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  championships Championship[] 
 }
 
 enum UserRole {
@@ -32,3 +34,36 @@ enum UserRole {
   REFEREE
   PLAYER
 }
+
+enum ChampionshipStatus {
+  DRAFT
+  OPEN
+  ONGOING
+  FINISHED
+  CANCELLED
+}
+
+enum ChampionshipFormat {
+  LEAGUE
+  CUP
+  MIXED
+}
+
+model Championship {
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  sport_type  String
+  format      ChampionshipFormat
+  season      String
+  status      ChampionshipStatus @default(DRAFT)
+  start_date  DateTime
+  end_date    DateTime
+  max_teams   Int
+  created_at  DateTime           @default(now())
+  updated_at  DateTime           @updatedAt
+
+  organizer    User   @relation(fields: [organizer_id], references: [id])
+  organizer_id String
+}
+
