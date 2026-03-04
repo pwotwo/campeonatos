@@ -116,6 +116,7 @@ model Player {
   user_id        String?  @unique
 
   events MatchEvent[]
+  sanctions Sanction[]
 }
 
 enum EnrollmentStatus {
@@ -171,6 +172,7 @@ model Match {
   referee_id   String?
 
   events MatchEvent[]
+  sanctions Sanction[]
 }
 
 enum EventType {
@@ -215,4 +217,25 @@ model Standing {
   team_id         String
 
   @@unique([championship_id, team_id])
+}
+
+enum SanctionType {
+  YELLOW_CARD
+  RED_CARD
+  SUSPENSION
+}
+
+model Sanction {
+  id               String       @id @default(cuid())
+  type             SanctionType
+  games_suspended  Int          @default(0)
+  reason           String?
+  served           Boolean      @default(false)
+  applied_at       DateTime     @default(now())
+
+  player           Player       @relation(fields: [player_id], references: [id])
+  player_id        String
+
+  match            Match        @relation(fields: [match_id], references: [id])
+  match_id         String
 }
