@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
+import authRoutes from './routes/auth.routes'
+import { authenticate } from './middleware/auth.middleware'
 
 dotenv.config()
 
@@ -11,6 +13,14 @@ const app = express()
 app.use(cors())
 app.use(helmet())
 app.use(express.json())
+
+// Rotas
+app.use('/api/auth', authRoutes)
+
+// Rota protegida de teste
+app.get('/api/me', authenticate, (req, res) => {
+  res.json({ success: true, user: (req as any).user })
+})
 
 // Rota de teste
 app.get('/health', (req, res) => {
