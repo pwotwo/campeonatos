@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 import authRoutes from './routes/auth.routes'
 import championshipRoutes from './routes/championship.routes'
 import teamRoutes from './routes/team.routes'
+import matchRoutes from './routes/match.routes'
 import { authenticate } from './middleware/auth.middleware'
 
 dotenv.config()
@@ -20,6 +21,7 @@ app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use('/api/championships', championshipRoutes)
 app.use('/api/teams', teamRoutes)
+app.use('/api/matches', matchRoutes)
 
 // Rota protegida de teste
 app.get('/api/me', authenticate, (req, res) => {
@@ -40,4 +42,3 @@ const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`🚀 Servidor a correr na porta ${PORT}`)
 })
-

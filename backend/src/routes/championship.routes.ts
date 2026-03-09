@@ -19,4 +19,7 @@ router.put('/:id', authenticate, championshipController.update)
 // PATCH /api/championships/:id/publish — publicar (autenticado)
 router.patch('/:id/publish', authenticate, championshipController.publish)
 
+// GET /api/championships/:id/standings — classificações (público)
+router.get('/:id/standings', championshipController.getStandings)
+
 export default router

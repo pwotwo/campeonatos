@@ -65,3 +65,13 @@ export async function publish(req: Request, res: Response) {
   }
 }
 
+export async function getStandings(req: Request, res: Response) {
+  try {
+    const id = req.params['id'] as string
+    const standings = await championshipService.getStandings(id)
+    res.json({ success: true, standings })
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+

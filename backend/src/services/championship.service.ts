@@ -70,3 +70,19 @@ export async function publish(id: string) {
     data: { status: ChampionshipStatus.OPEN }
   })
 }
+
+// Buscar classificações do campeonato
+export async function getStandings(championship_id: string) {
+  return prisma.standing.findMany({
+    where: { championship_id },
+    include: {
+      team: {
+        select: { name: true, short_name: true, badge_url: true }
+      }
+    },
+    orderBy: [
+      { points: 'desc' },
+      { goals_for: 'desc' }
+    ]
+  })
+}
