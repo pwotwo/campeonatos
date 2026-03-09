@@ -7,6 +7,7 @@ import championshipRoutes from './routes/championship.routes'
 import teamRoutes from './routes/team.routes'
 import matchRoutes from './routes/match.routes'
 import { authenticate } from './middleware/auth.middleware'
+import { errorHandler } from './middleware/error.middleware'
 
 dotenv.config()
 
@@ -23,12 +24,12 @@ app.use('/api/championships', championshipRoutes)
 app.use('/api/teams', teamRoutes)
 app.use('/api/matches', matchRoutes)
 
-// Rota protegida de teste
+// Rota protegida
 app.get('/api/me', authenticate, (req, res) => {
   res.json({ success: true, user: (req as any).user })
 })
 
-// Rota de teste
+// Rota de saúde
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -37,7 +38,14 @@ app.get('/health', (req, res) => {
   })
 })
 
-// Arrancar o servidor
+// Rota não encontrada
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Rota não encontrada' })
+})
+
+// Error handler global
+app.use(errorHandler)
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`🚀 Servidor a correr na porta ${PORT}`)
