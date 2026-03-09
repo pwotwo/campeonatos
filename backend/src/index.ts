@@ -4,6 +4,7 @@ import helmet from 'helmet'
 import dotenv from 'dotenv'
 import authRoutes from './routes/auth.routes'
 import championshipRoutes from './routes/championship.routes'
+import teamRoutes from './routes/team.routes'
 import { authenticate } from './middleware/auth.middleware'
 
 dotenv.config()
@@ -18,6 +19,7 @@ app.use(express.json())
 // Rotas
 app.use('/api/auth', authRoutes)
 app.use('/api/championships', championshipRoutes)
+app.use('/api/teams', teamRoutes)
 
 // Rota protegida de teste
 app.get('/api/me', authenticate, (req, res) => {
