@@ -1,16 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-
-// Páginas (vamos criar a seguir)
-function LoginPage() {
-  return <div>Login Page — em construção</div>
-}
+import LoginPage from './pages/LoginPage'
 
 function DashboardPage() {
   return <div>Dashboard — em construção</div>
 }
 
-// Rota protegida — redireciona para login se não autenticado
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
