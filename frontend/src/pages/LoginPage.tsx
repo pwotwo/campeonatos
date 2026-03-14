@@ -15,7 +15,6 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       await login(email, password)
       navigate('/dashboard')
@@ -27,22 +26,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-10 w-full max-w-md shadow-2xl">
 
-        {/* Logo */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🏆</div>
-          <h1 className="text-2xl font-bold text-gray-800">Campeonatos</h1>
-          <p className="text-gray-500 text-sm">Sistema de Gestão Desportiva</p>
+          <div className="text-5xl mb-4">🏆</div>
+          <h1 className="text-3xl font-bold text-white">Campeonatos</h1>
+          <p className="text-gray-400 text-sm mt-1">Sistema de Gestão Desportiva</p>
         </div>
 
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
               Email
             </label>
             <input
@@ -51,13 +50,13 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@campeonatos.com"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 transition-colors"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
               Password
             </label>
             <input
@@ -66,14 +65,14 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 transition-colors"
             />
           </div>
 
           {/* Erro */}
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">
-              {error}
+            <div className="bg-red-900/30 border border-red-700 text-red-400 text-sm px-4 py-3 rounded-xl">
+              ⚠️ {error}
             </div>
           )}
 
@@ -81,12 +80,18 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:opacity-50 text-black font-bold py-3 rounded-xl transition-colors text-base"
           >
-            {loading ? 'A entrar...' : 'Entrar'}
+            {loading ? 'A entrar...' : '→ Entrar'}
           </button>
 
         </form>
+
+        {/* Footer */}
+        <p className="text-center text-gray-600 text-xs mt-8">
+          © 2026 Campeonatos · Todos os direitos reservados
+        </p>
+
       </div>
     </div>
   )
