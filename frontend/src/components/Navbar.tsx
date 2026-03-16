@@ -6,6 +6,7 @@ const menuItems = [
   { path: '/campeonatos', icon: '🏆', label: 'Campeonatos' },
   { path: '/equipas', icon: '👥', label: 'Equipas' },
   { path: '/jogos', icon: '⚽', label: 'Jogos' },
+  { path: '/classificacoes', icon: '📊', label: 'Classificações' },
 ]
 
 export default function Navbar() {
