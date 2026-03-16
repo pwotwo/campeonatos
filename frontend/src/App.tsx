@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CampeonatosPage from './pages/CampeonatosPage'
 import EquipasPage from './pages/EquipasPage'
+import JogosPage from './pages/JogosPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -22,6 +23,9 @@ function AppRoutes() {
       } />
       <Route path="/equipas" element={
         <PrivateRoute><EquipasPage /></PrivateRoute>
+      } />
+      <Route path="/jogos" element={
+        <PrivateRoute><JogosPage /></PrivateRoute>
       } />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
