@@ -65,6 +65,16 @@ export async function publish(req: Request, res: Response) {
   }
 }
 
+export async function generateSchedule(req: Request, res: Response) {
+  try {
+    const id = req.params['id'] as string
+    const result = await championshipService.generateSchedule(id)
+    res.status(201).json({ success: true, ...result })
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message })
+  }
+}
+
 export async function getStandings(req: Request, res: Response) {
   try {
     const id = req.params['id'] as string

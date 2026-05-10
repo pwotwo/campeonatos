@@ -19,6 +19,9 @@ router.put('/:id', authenticate, championshipController.update)
 // PATCH /api/championships/:id/publish — publicar (autenticado)
 router.patch('/:id/publish', authenticate, championshipController.publish)
 
+// POST /api/championships/:id/generate-schedule — gerar calendário (autenticado)
+router.post('/:id/generate-schedule', authenticate, championshipController.generateSchedule)
+
 // GET /api/championships/:id/standings — classificações (público)
 router.get('/:id/standings', championshipController.getStandings)
 

@@ -13,7 +13,8 @@ interface Championship {
   end_date: string
   max_teams: number
   organizer: { full_name: string }
-  _count: { enrollments: number }
+  approved_teams: number
+  _count: { enrollments: number; matches: number }
 }
 
 const statusColors: Record<string, string> = {
@@ -41,6 +42,7 @@ const formatLabels: Record<string, string> = {
 export default function CampeonatosPage() {
   const [championships, setChampionships] = useState<Championship[]>([])
   const [loading, setLoading] = useState(true)
+  const [actionId, setActionId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
     name: '', sport_type: '', format: 'LEAGUE',
@@ -79,10 +81,25 @@ export default function CampeonatosPage() {
 
   async function handlePublish(id: string) {
     try {
+      setActionId(id)
       await api.patch(`/championships/${id}/publish`)
       loadChampionships()
     } catch (err) {
       console.error(err)
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  async function handleGenerateSchedule(id: string) {
+    try {
+      setActionId(id)
+      await api.post(`/championships/${id}/generate-schedule`)
+      loadChampionships()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setActionId(null)
     }
   }
 
@@ -214,14 +231,25 @@ export default function CampeonatosPage() {
                 <p>🎯 {c.sport_type} · {formatLabels[c.format]}</p>
                 <p>📅 Época {c.season}</p>
                 <p>👥 {c._count.enrollments}/{c.max_teams} equipas</p>
+                <p>⚽ {c._count.matches} jogos</p>
                 <p>👤 {c.organizer.full_name}</p>
               </div>
               {c.status === 'DRAFT' && (
                 <button
                   onClick={() => handlePublish(c.id)}
+                  disabled={actionId === c.id}
                   className="w-full bg-green-900 hover:bg-green-800 text-green-400 font-semibold py-2 rounded-xl transition-colors text-sm"
                 >
-                  ✓ Publicar
+                  {actionId === c.id ? 'A publicar...' : '✓ Publicar'}
+                </button>
+              )}
+              {c.status === 'OPEN' && c.approved_teams >= 2 && c._count.matches === 0 && (
+                <button
+                  onClick={() => handleGenerateSchedule(c.id)}
+                  disabled={actionId === c.id}
+                  className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-blue-300 font-semibold py-2 rounded-xl transition-colors text-sm"
+                >
+                  {actionId === c.id ? 'A gerar...' : 'Gerar calendário'}
                 </button>
               )}
             </div>

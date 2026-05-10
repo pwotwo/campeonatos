@@ -99,6 +99,7 @@ export async function addEvent(match_id: string, data: any) {
 export async function finish(id: string) {
   const match = await prisma.match.findUnique({ where: { id } })
   if (!match) throw new Error('Jogo não encontrado')
+  if (match.status === MatchStatus.FINISHED) throw new Error('Jogo já foi finalizado')
 
   const homeScore = match.home_score ?? 0
   const awayScore = match.away_score ?? 0

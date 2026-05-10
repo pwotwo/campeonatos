@@ -1,4 +1,4 @@
-import { PrismaClient, ChampionshipStatus } from '@prisma/client'
+import { ChampionshipStatus, PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -15,13 +15,33 @@ export async function getAll(page = 1, limit = 10) {
           select: { full_name: true, email: true }
         },
         _count: {
-          select: { enrollments: true }
+          select: { enrollments: true, matches: true }
         }
       }
     }),
     prisma.championship.count()
   ])
-  return { data, total, page, limit }
+  const approvedCounts = await prisma.championshipTeam.groupBy({
+    by: ['championship_id'],
+    where: {
+      championship_id: { in: data.map((championship) => championship.id) },
+      status: 'APPROVED'
+    },
+    _count: { championship_id: true }
+  })
+  const approvedByChampionship = new Map(
+    approvedCounts.map((count) => [count.championship_id, count._count.championship_id])
+  )
+
+  return {
+    data: data.map((championship) => ({
+      ...championship,
+      approved_teams: approvedByChampionship.get(championship.id) ?? 0
+    })),
+    total,
+    page,
+    limit
+  }
 }
 
 // Buscar campeonato por ID
@@ -69,6 +89,75 @@ export async function publish(id: string) {
     where: { id },
     data: { status: ChampionshipStatus.OPEN }
   })
+}
+
+// Gerar calendário round-robin para equipas aprovadas
+export async function generateSchedule(id: string) {
+  const championship = await prisma.championship.findUnique({
+    where: { id },
+    include: {
+      enrollments: {
+        where: { status: 'APPROVED' },
+        include: { team: true },
+        orderBy: { enrolled_at: 'asc' }
+      },
+      _count: { select: { matches: true } }
+    }
+  })
+
+  if (!championship) throw new Error('Campeonato não encontrado')
+  if (championship._count.matches > 0) throw new Error('Calendário já foi gerado')
+
+  const teams = championship.enrollments.map((enrollment) => enrollment.team)
+  if (teams.length < 2) throw new Error('São necessárias pelo menos 2 equipas aprovadas')
+
+  const startDate = new Date(championship.start_date)
+  const matches = []
+
+  for (let homeIndex = 0; homeIndex < teams.length; homeIndex++) {
+    for (let awayIndex = homeIndex + 1; awayIndex < teams.length; awayIndex++) {
+      const scheduledAt = new Date(startDate)
+      scheduledAt.setDate(startDate.getDate() + matches.length * 7)
+      scheduledAt.setHours(18, 30, 0, 0)
+
+      matches.push({
+        championship_id: id,
+        home_team_id: teams[homeIndex]!.id,
+        away_team_id: teams[awayIndex]!.id,
+        round: matches.length + 1,
+        scheduled_at: scheduledAt,
+        venue: 'Campo principal'
+      })
+    }
+  }
+
+  await prisma.$transaction([
+    ...teams.map((team) =>
+      prisma.standing.upsert({
+        where: {
+          championship_id_team_id: {
+            championship_id: id,
+            team_id: team.id
+          }
+        },
+        create: {
+          championship_id: id,
+          team_id: team.id
+        },
+        update: {}
+      })
+    ),
+    prisma.match.createMany({ data: matches }),
+    prisma.championship.update({
+      where: { id },
+      data: { status: ChampionshipStatus.ONGOING }
+    })
+  ])
+
+  return {
+    matches_created: matches.length,
+    teams: teams.length
+  }
 }
 
 // Buscar classificações do campeonato
