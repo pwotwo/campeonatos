@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "dev": "nodemon src/index.ts",
-  "build": "tsc",
-  "start": "node dist/src/index.js",
-  "seed": "ts-node prisma/seed.ts",
-  "postinstall": "prisma generate",
-  "prisma:migrate": "prisma migrate deploy"
-},
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "seed": "ts-node prisma/seed.ts",
+    "postinstall": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -26,6 +26,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.4.0",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
