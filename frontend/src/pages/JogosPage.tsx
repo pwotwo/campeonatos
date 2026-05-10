@@ -4,6 +4,8 @@ import api from '../services/api'
 
 interface Match {
   id: string
+  home_team_id: string
+  away_team_id: string
   round: number
   scheduled_at: string
   venue: string | null
@@ -17,6 +19,20 @@ interface Match {
 interface Championship {
   id: string
   name: string
+}
+
+interface Player {
+  id: string
+  full_name: string
+  jersey_number: number
+}
+
+interface EventForm {
+  team_id: string
+  player_id: string
+  type: string
+  minute: number
+  description: string
 }
 
 const statusColors: Record<string, string> = {
@@ -40,6 +56,11 @@ export default function JogosPage() {
   const [championships, setChampionships] = useState<Championship[]>([])
   const [selectedChampionship, setSelectedChampionship] = useState('')
   const [loading, setLoading] = useState(true)
+  const [actionId, setActionId] = useState<string | null>(null)
+  const [openEventMatchId, setOpenEventMatchId] = useState<string | null>(null)
+  const [playersByTeam, setPlayersByTeam] = useState<Record<string, Player[]>>({})
+  const [eventForms, setEventForms] = useState<Record<string, EventForm>>({})
+  const [error, setError] = useState('')
 
   useEffect(() => {
     loadChampionships()
@@ -60,6 +81,7 @@ export default function JogosPage() {
 
   async function loadMatches() {
     try {
+      setError('')
       setLoading(true)
       const url = selectedChampionship
         ? `/matches?championship_id=${selectedChampionship}`
@@ -70,6 +92,102 @@ export default function JogosPage() {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  function defaultEventForm(match: Match): EventForm {
+    return {
+      team_id: match.home_team_id,
+      player_id: '',
+      type: 'GOAL',
+      minute: 1,
+      description: ''
+    }
+  }
+
+  async function loadPlayers(teamId: string) {
+    if (playersByTeam[teamId]) return
+
+    const res = await api.get(`/teams/${teamId}/players`)
+    setPlayersByTeam((current) => ({
+      ...current,
+      [teamId]: res.data.players
+    }))
+  }
+
+  async function handleStart(match: Match) {
+    try {
+      setError('')
+      setActionId(match.id)
+      await api.patch(`/matches/${match.id}/start`)
+      await loadMatches()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Não foi possível iniciar o jogo')
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  async function handleFinish(match: Match) {
+    try {
+      setError('')
+      setActionId(match.id)
+      await api.patch(`/matches/${match.id}/finish`)
+      setOpenEventMatchId(null)
+      await loadMatches()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Não foi possível finalizar o jogo')
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  async function handleOpenEventForm(match: Match) {
+    const nextForm = eventForms[match.id] || defaultEventForm(match)
+    setOpenEventMatchId(openEventMatchId === match.id ? null : match.id)
+    setEventForms((current) => ({ ...current, [match.id]: nextForm }))
+    await loadPlayers(nextForm.team_id)
+  }
+
+  async function updateEventForm(match: Match, updates: Partial<EventForm>) {
+    const currentForm = eventForms[match.id] || defaultEventForm(match)
+    const nextForm = { ...currentForm, ...updates }
+
+    if (updates.team_id) {
+      nextForm.player_id = ''
+      await loadPlayers(updates.team_id)
+    }
+
+    setEventForms((current) => ({ ...current, [match.id]: nextForm }))
+  }
+
+  async function handleAddEvent(match: Match, e: React.FormEvent) {
+    e.preventDefault()
+    const form = eventForms[match.id]
+    if (!form?.player_id) {
+      setError('Escolhe um jogador para registar o evento')
+      return
+    }
+
+    try {
+      setError('')
+      setActionId(match.id)
+      await api.post(`/matches/${match.id}/events`, {
+        player_id: form.player_id,
+        team_id: form.team_id,
+        type: form.type,
+        minute: Number(form.minute),
+        description: form.description || undefined
+      })
+      setEventForms((current) => ({
+        ...current,
+        [match.id]: { ...form, player_id: '', minute: Math.min(Number(form.minute) + 1, 120), description: '' }
+      }))
+      await loadMatches()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Não foi possível registar o evento')
+    } finally {
+      setActionId(null)
     }
   }
 
@@ -94,6 +212,12 @@ export default function JogosPage() {
           ))}
         </select>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-900/30 border border-red-700 text-red-300 text-sm px-4 py-3 rounded-xl">
+          {error}
+        </div>
+      )}
 
       {/* Lista de jogos */}
       {loading ? (
@@ -151,6 +275,91 @@ export default function JogosPage() {
                 <span>🏟️ {match.venue || 'Local não definido'}</span>
                 <span>📅 Jornada {match.round}</span>
               </div>
+
+              <div className="flex flex-wrap gap-3 mt-4">
+                {match.status === 'SCHEDULED' && (
+                  <button
+                    onClick={() => handleStart(match)}
+                    disabled={actionId === match.id}
+                    className="bg-green-900 hover:bg-green-800 disabled:opacity-60 text-green-300 font-semibold px-4 py-2 rounded-xl transition-colors text-sm"
+                  >
+                    {actionId === match.id ? 'A iniciar...' : 'Iniciar jogo'}
+                  </button>
+                )}
+
+                {match.status === 'ONGOING' && (
+                  <>
+                    <button
+                      onClick={() => handleOpenEventForm(match)}
+                      disabled={actionId === match.id}
+                      className="bg-yellow-500 hover:bg-yellow-400 disabled:opacity-60 text-black font-semibold px-4 py-2 rounded-xl transition-colors text-sm"
+                    >
+                      Registar evento
+                    </button>
+                    <button
+                      onClick={() => handleFinish(match)}
+                      disabled={actionId === match.id}
+                      className="bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-blue-300 font-semibold px-4 py-2 rounded-xl transition-colors text-sm"
+                    >
+                      {actionId === match.id ? 'A finalizar...' : 'Finalizar jogo'}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {openEventMatchId === match.id && (
+                <form onSubmit={(e) => handleAddEvent(match, e)} className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3 bg-gray-800 rounded-xl p-4">
+                  <select
+                    value={(eventForms[match.id] || defaultEventForm(match)).team_id}
+                    onChange={(e) => updateEventForm(match, { team_id: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+                  >
+                    <option value={match.home_team_id}>{match.home_team.name}</option>
+                    <option value={match.away_team_id}>{match.away_team.name}</option>
+                  </select>
+
+                  <select
+                    value={(eventForms[match.id] || defaultEventForm(match)).player_id}
+                    onChange={(e) => updateEventForm(match, { player_id: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+                  >
+                    <option value="">Jogador</option>
+                    {(playersByTeam[(eventForms[match.id] || defaultEventForm(match)).team_id] || []).map((player) => (
+                      <option key={player.id} value={player.id}>
+                        #{player.jersey_number} {player.full_name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={(eventForms[match.id] || defaultEventForm(match)).type}
+                    onChange={(e) => updateEventForm(match, { type: e.target.value })}
+                    className="bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+                  >
+                    <option value="GOAL">Golo</option>
+                    <option value="YELLOW_CARD">Cartão amarelo</option>
+                    <option value="RED_CARD">Cartão vermelho</option>
+                    <option value="SUBSTITUTION">Substituição</option>
+                  </select>
+
+                  <input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={(eventForms[match.id] || defaultEventForm(match)).minute}
+                    onChange={(e) => updateEventForm(match, { minute: Number(e.target.value) })}
+                    className="bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={actionId === match.id}
+                    className="bg-yellow-500 hover:bg-yellow-400 disabled:opacity-60 text-black font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+                  >
+                    {actionId === match.id ? 'A guardar...' : 'Guardar evento'}
+                  </button>
+                </form>
+              )}
             </div>
           ))}
         </div>
