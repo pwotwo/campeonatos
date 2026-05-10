@@ -1,4 +1,5 @@
 import { PrismaClient, MatchStatus, SanctionType } from '@prisma/client'
+import * as standingService from './standing.service'
 
 const prisma = new PrismaClient()
 
@@ -114,48 +115,7 @@ export async function finish(id: string) {
     }
   })
 
-  const homeWin = homeScore > awayScore
-  const awayWin = awayScore > homeScore
-  const draw = homeScore === awayScore
-
-  // Atualizar standings
-  await updateStanding(match.championship_id, match.home_team_id, homeScore, awayScore, homeWin, draw)
-  await updateStanding(match.championship_id, match.away_team_id, awayScore, homeScore, awayWin, draw)
+  await standingService.recalculate(match.championship_id)
 
   return updated
-}
-
-async function updateStanding(
-  championship_id: string,
-  team_id: string,
-  goalsFor: number,
-  goalsAgainst: number,
-  win: boolean,
-  draw: boolean
-) {
-  const points = win ? 3 : draw ? 1 : 0
-
-  await prisma.standing.upsert({
-    where: { championship_id_team_id: { championship_id, team_id } },
-    create: {
-      championship_id,
-      team_id,
-      played: 1,
-      wins: win ? 1 : 0,
-      draws: draw ? 1 : 0,
-      losses: !win && !draw ? 1 : 0,
-      goals_for: goalsFor,
-      goals_against: goalsAgainst,
-      points
-    },
-    update: {
-      played: { increment: 1 },
-      wins: { increment: win ? 1 : 0 },
-      draws: { increment: draw ? 1 : 0 },
-      losses: { increment: !win && !draw ? 1 : 0 },
-      goals_for: { increment: goalsFor },
-      goals_against: { increment: goalsAgainst },
-      points: { increment: points }
-    }
-  })
 }

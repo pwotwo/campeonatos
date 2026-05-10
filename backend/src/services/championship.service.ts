@@ -1,4 +1,5 @@
 import { ChampionshipStatus, PrismaClient } from '@prisma/client'
+import * as standingService from './standing.service'
 
 const prisma = new PrismaClient()
 
@@ -171,7 +172,20 @@ export async function getStandings(championship_id: string) {
     },
     orderBy: [
       { points: 'desc' },
+      { wins: 'desc' },
       { goals_for: 'desc' }
     ]
   })
+}
+
+// Recalcular classificações a partir dos jogos finalizados
+export async function recalculateStandings(championship_id: string) {
+  const championship = await prisma.championship.findUnique({
+    where: { id: championship_id },
+    select: { id: true }
+  })
+
+  if (!championship) throw new Error('Campeonato não encontrado')
+
+  return standingService.recalculate(championship_id)
 }

@@ -24,6 +24,8 @@ export default function ClassificacoesPage() {
   const [championships, setChampionships] = useState<Championship[]>([])
   const [selectedChampionship, setSelectedChampionship] = useState('')
   const [loading, setLoading] = useState(false)
+  const [recalculating, setRecalculating] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => { loadChampionships() }, [])
 
@@ -45,6 +47,7 @@ export default function ClassificacoesPage() {
 
   async function loadStandings() {
     try {
+      setError('')
       setLoading(true)
       const res = await api.get(`/championships/${selectedChampionship}/standings`)
       setStandings(res.data.standings)
@@ -52,6 +55,21 @@ export default function ClassificacoesPage() {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleRecalculate() {
+    if (!selectedChampionship) return
+
+    try {
+      setError('')
+      setRecalculating(true)
+      await api.post(`/championships/${selectedChampionship}/standings/recalculate`)
+      await loadStandings()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Não foi possível recalcular a classificação')
+    } finally {
+      setRecalculating(false)
     }
   }
 
@@ -65,16 +83,31 @@ export default function ClassificacoesPage() {
           <h1 className="text-3xl font-bold text-white">Classificações</h1>
           <p className="text-gray-400 mt-1">Tabela classificativa por campeonato</p>
         </div>
-        <select
-          value={selectedChampionship}
-          onChange={(e) => setSelectedChampionship(e.target.value)}
-          className="bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-yellow-500"
-        >
-          {championships.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+        <div className="flex gap-3">
+          <select
+            value={selectedChampionship}
+            onChange={(e) => setSelectedChampionship(e.target.value)}
+            className="bg-gray-900 border border-gray-700 text-white px-4 py-2 rounded-xl focus:outline-none focus:border-yellow-500"
+          >
+            {championships.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <button
+            onClick={handleRecalculate}
+            disabled={!selectedChampionship || recalculating}
+            className="bg-yellow-500 hover:bg-yellow-400 disabled:opacity-60 text-black font-bold px-4 py-2 rounded-xl transition-colors text-sm"
+          >
+            {recalculating ? 'A recalcular...' : 'Recalcular'}
+          </button>
+        </div>
       </div>
+
+      {error && (
+        <div className="mb-6 bg-red-900/30 border border-red-700 text-red-300 text-sm px-4 py-3 rounded-xl">
+          {error}
+        </div>
+      )}
 
       {/* Tabela */}
       {loading ? (

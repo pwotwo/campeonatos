@@ -25,4 +25,7 @@ router.post('/:id/generate-schedule', authenticate, championshipController.gener
 // GET /api/championships/:id/standings — classificações (público)
 router.get('/:id/standings', championshipController.getStandings)
 
+// POST /api/championships/:id/standings/recalculate — recalcular classificações (autenticado)
+router.post('/:id/standings/recalculate', authenticate, championshipController.recalculateStandings)
+
 export default router

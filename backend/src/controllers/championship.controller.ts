@@ -85,3 +85,13 @@ export async function getStandings(req: Request, res: Response) {
   }
 }
 
+export async function recalculateStandings(req: Request, res: Response) {
+  try {
+    const id = req.params['id'] as string
+    const result = await championshipService.recalculateStandings(id)
+    res.json({ success: true, ...result })
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message })
+  }
+}
+
