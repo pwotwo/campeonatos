@@ -6,6 +6,7 @@ import CampeonatosPage from './pages/CampeonatosPage'
 import EquipasPage from './pages/EquipasPage'
 import JogosPage from './pages/JogosPage'
 import ClassificacoesPage from './pages/ClassificacoesPage'
+import PublicChampionshipPage from './pages/PublicChampionshipPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -16,6 +17,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/public/campeonatos/:id" element={<PublicChampionshipPage />} />
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
       <Route path="/campeonatos" element={<PrivateRoute><CampeonatosPage /></PrivateRoute>} />
       <Route path="/equipas" element={<PrivateRoute><EquipasPage /></PrivateRoute>} />

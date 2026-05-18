@@ -85,6 +85,39 @@ export async function getStandings(req: Request, res: Response) {
   }
 }
 
+export async function getEnrollments(req: Request, res: Response) {
+  try {
+    const id = req.params['id'] as string
+    const enrollments = await championshipService.getEnrollments(id)
+    res.json({ success: true, enrollments })
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+
+export async function updateEnrollmentStatus(req: Request, res: Response) {
+  try {
+    const enrollmentId = req.params['enrollmentId'] as string
+    const data = z.object({
+      status: z.enum(['PENDING', 'APPROVED', 'REJECTED'])
+    }).parse(req.body)
+    const enrollment = await championshipService.updateEnrollmentStatus(enrollmentId, data.status)
+    res.json({ success: true, enrollment })
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message })
+  }
+}
+
+export async function getRankings(req: Request, res: Response) {
+  try {
+    const id = req.params['id'] as string
+    const rankings = await championshipService.getRankings(id)
+    res.json({ success: true, rankings })
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+
 export async function recalculateStandings(req: Request, res: Response) {
   try {
     const id = req.params['id'] as string

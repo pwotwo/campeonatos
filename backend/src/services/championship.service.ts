@@ -1,4 +1,4 @@
-import { ChampionshipStatus, PrismaClient } from '@prisma/client'
+import { ChampionshipStatus, EnrollmentStatus, EventType, PrismaClient } from '@prisma/client'
 import * as standingService from './standing.service'
 
 const prisma = new PrismaClient()
@@ -176,6 +176,102 @@ export async function getStandings(championship_id: string) {
       { goals_for: 'desc' }
     ]
   })
+}
+
+export async function getEnrollments(championship_id: string) {
+  return prisma.championshipTeam.findMany({
+    where: { championship_id },
+    include: {
+      team: {
+        include: {
+          manager: {
+            select: { full_name: true, email: true }
+          },
+          _count: {
+            select: { players: true }
+          }
+        }
+      }
+    },
+    orderBy: { enrolled_at: 'desc' }
+  })
+}
+
+export async function updateEnrollmentStatus(enrollment_id: string, status: EnrollmentStatus) {
+  const enrollment = await prisma.championshipTeam.findUnique({
+    where: { id: enrollment_id },
+    include: { championship: true }
+  })
+
+  if (!enrollment) throw new Error('Inscrição não encontrada')
+  if (!Object.values(EnrollmentStatus).includes(status)) throw new Error('Estado inválido')
+  if (enrollment.championship.status !== ChampionshipStatus.OPEN) {
+    throw new Error('Só é possível alterar inscrições em campeonatos abertos')
+  }
+
+  return prisma.championshipTeam.update({
+    where: { id: enrollment_id },
+    data: { status },
+    include: { team: true }
+  })
+}
+
+export async function getRankings(championship_id: string) {
+  const events = await prisma.matchEvent.findMany({
+    where: {
+      match: { championship_id },
+      type: { in: [EventType.GOAL, EventType.YELLOW_CARD, EventType.RED_CARD] }
+    },
+    include: {
+      player: {
+        select: {
+          id: true,
+          full_name: true,
+          jersey_number: true,
+          team: { select: { name: true, short_name: true } }
+        }
+      }
+    }
+  })
+
+  const byPlayer = new Map<string, {
+    player_id: string
+    full_name: string
+    jersey_number: number
+    team: { name: string; short_name: string }
+    goals: number
+    yellow_cards: number
+    red_cards: number
+  }>()
+
+  for (const event of events) {
+    const current = byPlayer.get(event.player.id) ?? {
+      player_id: event.player.id,
+      full_name: event.player.full_name,
+      jersey_number: event.player.jersey_number,
+      team: event.player.team,
+      goals: 0,
+      yellow_cards: 0,
+      red_cards: 0
+    }
+
+    if (event.type === EventType.GOAL) current.goals += 1
+    if (event.type === EventType.YELLOW_CARD) current.yellow_cards += 1
+    if (event.type === EventType.RED_CARD) current.red_cards += 1
+
+    byPlayer.set(event.player.id, current)
+  }
+
+  const players = Array.from(byPlayer.values())
+
+  return {
+    scorers: [...players]
+      .filter((player) => player.goals > 0)
+      .sort((a, b) => b.goals - a.goals || a.full_name.localeCompare(b.full_name)),
+    discipline: [...players]
+      .filter((player) => player.yellow_cards > 0 || player.red_cards > 0)
+      .sort((a, b) => b.red_cards - a.red_cards || b.yellow_cards - a.yellow_cards || a.full_name.localeCompare(b.full_name))
+  }
 }
 
 // Recalcular classificações a partir dos jogos finalizados

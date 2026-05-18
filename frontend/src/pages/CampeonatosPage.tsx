@@ -17,6 +17,19 @@ interface Championship {
   _count: { enrollments: number; matches: number }
 }
 
+interface Enrollment {
+  id: string
+  status: string
+  enrolled_at: string
+  team: {
+    name: string
+    short_name: string
+    city: string
+    manager: { full_name: string; email: string }
+    _count: { players: number }
+  }
+}
+
 const statusColors: Record<string, string> = {
   DRAFT: 'bg-gray-700 text-gray-300',
   OPEN: 'bg-green-900 text-green-400',
@@ -43,6 +56,8 @@ export default function CampeonatosPage() {
   const [championships, setChampionships] = useState<Championship[]>([])
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
+  const [selectedEnrollmentChampionship, setSelectedEnrollmentChampionship] = useState<Championship | null>(null)
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
     name: '', sport_type: '', format: 'LEAGUE',
@@ -96,6 +111,31 @@ export default function CampeonatosPage() {
       setActionId(id)
       await api.post(`/championships/${id}/generate-schedule`)
       loadChampionships()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setActionId(null)
+    }
+  }
+
+  async function loadEnrollments(championship: Championship) {
+    try {
+      setSelectedEnrollmentChampionship(championship)
+      const res = await api.get(`/championships/${championship.id}/enrollments`)
+      setEnrollments(res.data.enrollments)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function handleEnrollmentStatus(enrollmentId: string, status: string) {
+    if (!selectedEnrollmentChampionship) return
+
+    try {
+      setActionId(enrollmentId)
+      await api.patch(`/championships/${selectedEnrollmentChampionship.id}/enrollments/${enrollmentId}`, { status })
+      await loadEnrollments(selectedEnrollmentChampionship)
+      await loadChampionships()
     } catch (err) {
       console.error(err)
     } finally {
@@ -234,6 +274,20 @@ export default function CampeonatosPage() {
                 <p>⚽ {c._count.matches} jogos</p>
                 <p>👤 {c.organizer.full_name}</p>
               </div>
+              <div className="flex gap-2 mb-3">
+                <a
+                  href={`/public/campeonatos/${c.id}`}
+                  className="flex-1 text-center bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold py-2 rounded-xl transition-colors text-sm"
+                >
+                  Página pública
+                </a>
+                <button
+                  onClick={() => loadEnrollments(c)}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold py-2 rounded-xl transition-colors text-sm"
+                >
+                  Inscrições
+                </button>
+              </div>
               {c.status === 'DRAFT' && (
                 <button
                   onClick={() => handlePublish(c.id)}
@@ -254,6 +308,61 @@ export default function CampeonatosPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedEnrollmentChampionship && (
+        <div className="mt-8 bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-white font-bold text-lg">Inscrições</h2>
+              <p className="text-gray-400 text-sm">{selectedEnrollmentChampionship.name}</p>
+            </div>
+            <button
+              onClick={() => setSelectedEnrollmentChampionship(null)}
+              className="text-gray-400 hover:text-white text-sm"
+            >
+              Fechar
+            </button>
+          </div>
+
+          {enrollments.length === 0 ? (
+            <p className="text-gray-500 text-sm">Ainda não há inscrições.</p>
+          ) : (
+            <div className="space-y-3">
+              {enrollments.map((enrollment) => (
+                <div key={enrollment.id} className="flex items-center justify-between gap-4 bg-gray-800 rounded-xl p-4">
+                  <div>
+                    <p className="text-white font-semibold">{enrollment.team.name}</p>
+                    <p className="text-gray-400 text-sm">
+                      {enrollment.team.city} · {enrollment.team._count.players} jogadores · {enrollment.team.manager.full_name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-300 bg-gray-900 px-2 py-1 rounded-lg">{enrollment.status}</span>
+                    {enrollment.status === 'PENDING' && (
+                      <>
+                        <button
+                          onClick={() => handleEnrollmentStatus(enrollment.id, 'APPROVED')}
+                          disabled={actionId === enrollment.id}
+                          className="bg-green-900 hover:bg-green-800 disabled:opacity-60 text-green-300 font-semibold px-3 py-2 rounded-lg text-sm"
+                        >
+                          Aprovar
+                        </button>
+                        <button
+                          onClick={() => handleEnrollmentStatus(enrollment.id, 'REJECTED')}
+                          disabled={actionId === enrollment.id}
+                          className="bg-red-900 hover:bg-red-800 disabled:opacity-60 text-red-300 font-semibold px-3 py-2 rounded-lg text-sm"
+                        >
+                          Rejeitar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </Layout>

@@ -29,13 +29,13 @@ Estimated for one person in working days. It may change depending on design, tes
 | 1 | Base tecnica e estabilidade / Technical base and stability | 2 dias / 2 days | Em progresso / In progress | Ambiente local, builds, seed, GitHub limpo / Local setup, builds, seed, clean GitHub |
 | 2 | Campeonatos / Championships | 3 dias / 3 days | Parcial / Partial | Criar, listar, publicar, estados e formatos / Create, list, publish, statuses and formats |
 | 3 | Equipas e jogadores / Teams and players | 3 dias / 3 days | Parcial / Partial | Criar equipas, gerir jogadores e detalhes / Create teams, manage players and details |
-| 4 | Inscricoes / Enrollments | 3 dias / 3 days | Pendente / Pending | Inscrever, aprovar e rejeitar equipas / Enroll, approve, and reject teams |
+| 4 | Inscricoes / Enrollments | 3 dias / 3 days | Em progresso / In progress | Inscrever, aprovar e rejeitar equipas / Enroll, approve, and reject teams |
 | 5 | Calendario automatico / Automatic schedule | 3 dias / 3 days | Em progresso / In progress | Gerar jogos, jornadas e evitar duplicados / Generate matches, rounds, and avoid duplicates |
 | 6 | Gestao de jogos / Match management | 4 dias / 4 days | Em progresso / In progress | Iniciar, registar eventos e finalizar jogos / Start, record events, and finish matches |
 | 7 | Classificacoes automaticas / Automatic standings | 3 dias / 3 days | Em progresso / In progress | Tabela segura, recalculo e desempates / Safe table, recalculation, and tie-breakers |
-| 8 | Rankings e estatisticas / Rankings and statistics | 4 dias / 4 days | Pendente / Pending | Artilheiros, cartoes, estatisticas por equipa/jogador / Scorers, cards, team/player stats |
+| 8 | Rankings e estatisticas / Rankings and statistics | 4 dias / 4 days | Em progresso / In progress | Artilheiros, cartoes, estatisticas por equipa/jogador / Scorers, cards, team/player stats |
 | 9 | Permissoes por perfil / Role permissions | 4 dias / 4 days | Pendente / Pending | Acessos por admin, organizador, gestor, arbitro e jogador / Access by admin, organizer, manager, referee, and player |
-| 10 | Pagina publica do campeonato / Public championship page | 4 dias / 4 days | Pendente / Pending | Link publico com tabela, jogos, equipas e rankings / Public link with table, matches, teams, and rankings |
+| 10 | Pagina publica do campeonato / Public championship page | 4 dias / 4 days | Em progresso / In progress | Link publico com tabela, jogos, equipas e rankings / Public link with table, matches, teams, and rankings |
 | 11 | UI/UX e responsividade / UI/UX and responsiveness | 4 dias / 4 days | Pendente / Pending | Estados, erros, mobile e polimento visual / States, errors, mobile, and visual polish |
 | 12 | Testes e revisao MVP / MVP tests and review | 4 dias / 4 days | Pendente / Pending | Testes criticos, bugs e preparacao para deploy / Critical tests, bugs, and deployment readiness |
 

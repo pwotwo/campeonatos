@@ -21,11 +21,20 @@ interface Player {
   nationality: string | null
 }
 
+interface Championship {
+  id: string
+  name: string
+  status: string
+}
+
 export default function EquipasPage() {
   const [teams, setTeams] = useState<Team[]>([])
+  const [championships, setChampionships] = useState<Championship[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [players, setPlayers] = useState<Player[]>([])
+  const [selectedChampionship, setSelectedChampionship] = useState('')
+  const [message, setMessage] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [showPlayerForm, setShowPlayerForm] = useState(false)
   const [form, setForm] = useState({
@@ -35,7 +44,10 @@ export default function EquipasPage() {
     full_name: '', birth_date: '', position: '', jersey_number: 1, nationality: ''
   })
 
-  useEffect(() => { loadTeams() }, [])
+  useEffect(() => {
+    loadTeams()
+    loadChampionships()
+  }, [])
 
   async function loadTeams() {
     try {
@@ -52,6 +64,17 @@ export default function EquipasPage() {
     try {
       const res = await api.get(`/teams/${teamId}/players`)
       setPlayers(res.data.players)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function loadChampionships() {
+    try {
+      const res = await api.get('/championships')
+      const openChampionships = res.data.data.filter((championship: Championship) => championship.status === 'OPEN')
+      setChampionships(openChampionships)
+      if (openChampionships.length > 0) setSelectedChampionship(openChampionships[0].id)
     } catch (err) {
       console.error(err)
     }
@@ -91,6 +114,17 @@ export default function EquipasPage() {
     }
   }
 
+  async function handleEnroll() {
+    if (!selectedTeam || !selectedChampionship) return
+
+    try {
+      await api.post(`/teams/${selectedTeam.id}/enroll`, { championship_id: selectedChampionship })
+      setMessage('Inscrição enviada para aprovação')
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Não foi possível inscrever a equipa')
+    }
+  }
+
   return (
     <Layout>
       {/* Header */}
@@ -106,6 +140,12 @@ export default function EquipasPage() {
           + Nova Equipa
         </button>
       </div>
+
+      {message && (
+        <div className="mb-6 bg-gray-900 border border-gray-800 text-gray-300 text-sm px-4 py-3 rounded-xl">
+          {message}
+        </div>
+      )}
 
       {/* Formulário nova equipa */}
       {showForm && (
@@ -180,6 +220,27 @@ export default function EquipasPage() {
                 className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-4 py-2 rounded-xl text-sm transition-colors"
               >
                 + Jogador
+              </button>
+            </div>
+
+            <div className="flex gap-3 mb-4 p-4 bg-gray-800 rounded-xl">
+              <select
+                value={selectedChampionship}
+                onChange={(e) => setSelectedChampionship(e.target.value)}
+                className="flex-1 bg-gray-900 border border-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-yellow-500"
+              >
+                {championships.length === 0 ? (
+                  <option value="">Sem campeonatos abertos</option>
+                ) : championships.map((championship) => (
+                  <option key={championship.id} value={championship.id}>{championship.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleEnroll}
+                disabled={!selectedChampionship}
+                className="bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-blue-300 font-bold px-4 py-2 rounded-lg text-sm"
+              >
+                Inscrever
               </button>
             </div>
 

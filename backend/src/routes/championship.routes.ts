@@ -25,6 +25,15 @@ router.post('/:id/generate-schedule', authenticate, championshipController.gener
 // GET /api/championships/:id/standings — classificações (público)
 router.get('/:id/standings', championshipController.getStandings)
 
+// GET /api/championships/:id/rankings — rankings (público)
+router.get('/:id/rankings', championshipController.getRankings)
+
+// GET /api/championships/:id/enrollments — inscrições (autenticado)
+router.get('/:id/enrollments', authenticate, championshipController.getEnrollments)
+
+// PATCH /api/championships/:id/enrollments/:enrollmentId — aprovar/rejeitar inscrição (autenticado)
+router.patch('/:id/enrollments/:enrollmentId', authenticate, championshipController.updateEnrollmentStatus)
+
 // POST /api/championships/:id/standings/recalculate — recalcular classificações (autenticado)
 router.post('/:id/standings/recalculate', authenticate, championshipController.recalculateStandings)
 
