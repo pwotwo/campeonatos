@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import * as matchController from '../controllers/match.controller'
-import { authenticate } from '../middleware/auth.middleware'
+import { authenticate, requireRole } from '../middleware/auth.middleware'
 
 const router = Router()
 
@@ -11,15 +11,15 @@ router.get('/', matchController.getAll)
 router.get('/:id', matchController.getById)
 
 // POST /api/matches — criar jogo (autenticado)
-router.post('/', authenticate, matchController.create)
+router.post('/', authenticate, requireRole('SUPER_ADMIN', 'CHAMPIONSHIP_ADMIN'), matchController.create)
 
 // PATCH /api/matches/:id/start — iniciar jogo (autenticado)
-router.patch('/:id/start', authenticate, matchController.start)
+router.patch('/:id/start', authenticate, requireRole('SUPER_ADMIN', 'CHAMPIONSHIP_ADMIN', 'REFEREE'), matchController.start)
 
 // POST /api/matches/:id/events — registar evento (autenticado)
-router.post('/:id/events', authenticate, matchController.addEvent)
+router.post('/:id/events', authenticate, requireRole('SUPER_ADMIN', 'CHAMPIONSHIP_ADMIN', 'REFEREE'), matchController.addEvent)
 
 // PATCH /api/matches/:id/finish — finalizar jogo (autenticado)
-router.patch('/:id/finish', authenticate, matchController.finish)
+router.patch('/:id/finish', authenticate, requireRole('SUPER_ADMIN', 'CHAMPIONSHIP_ADMIN', 'REFEREE'), matchController.finish)
 
 export default router

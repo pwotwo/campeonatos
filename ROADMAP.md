@@ -34,7 +34,7 @@ Estimated for one person in working days. It may change depending on design, tes
 | 6 | Gestao de jogos / Match management | 4 dias / 4 days | Em progresso / In progress | Iniciar, registar eventos e finalizar jogos / Start, record events, and finish matches |
 | 7 | Classificacoes automaticas / Automatic standings | 3 dias / 3 days | Em progresso / In progress | Tabela segura, recalculo e desempates / Safe table, recalculation, and tie-breakers |
 | 8 | Rankings e estatisticas / Rankings and statistics | 4 dias / 4 days | Em progresso / In progress | Artilheiros, cartoes, estatisticas por equipa/jogador / Scorers, cards, team/player stats |
-| 9 | Permissoes por perfil / Role permissions | 4 dias / 4 days | Pendente / Pending | Acessos por admin, organizador, gestor, arbitro e jogador / Access by admin, organizer, manager, referee, and player |
+| 9 | Permissoes por perfil / Role permissions | 4 dias / 4 days | Em progresso / In progress | Acessos por admin, organizador, gestor, arbitro e jogador / Access by admin, organizer, manager, referee, and player |
 | 10 | Pagina publica do campeonato / Public championship page | 4 dias / 4 days | Em progresso / In progress | Link publico com tabela, jogos, equipas e rankings / Public link with table, matches, teams, and rankings |
 | 11 | UI/UX e responsividade / UI/UX and responsiveness | 4 dias / 4 days | Pendente / Pending | Estados, erros, mobile e polimento visual / States, errors, mobile, and visual polish |
 | 12 | Testes e revisao MVP / MVP tests and review | 4 dias / 4 days | Pendente / Pending | Testes criticos, bugs e preparacao para deploy / Critical tests, bugs, and deployment readiness |

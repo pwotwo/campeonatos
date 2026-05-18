@@ -163,18 +163,26 @@ export async function generateSchedule(id: string) {
 
 // Buscar classificações do campeonato
 export async function getStandings(championship_id: string) {
-  return prisma.standing.findMany({
+  const standings = await prisma.standing.findMany({
     where: { championship_id },
     include: {
       team: {
         select: { name: true, short_name: true, badge_url: true }
       }
-    },
-    orderBy: [
-      { points: 'desc' },
-      { wins: 'desc' },
-      { goals_for: 'desc' }
-    ]
+    }
+  })
+
+  return standings.sort((a, b) => {
+    const goalDifferenceA = a.goals_for - a.goals_against
+    const goalDifferenceB = b.goals_for - b.goals_against
+
+    return (
+      b.points - a.points ||
+      b.wins - a.wins ||
+      goalDifferenceB - goalDifferenceA ||
+      b.goals_for - a.goals_for ||
+      a.team.name.localeCompare(b.team.name)
+    )
   })
 }
 
